@@ -22,12 +22,21 @@ const escapeHtml = value => String(value)
 
 const unique = values => [...new Set(values)];
 const csvEscape = value => `"${String(value ?? '').replaceAll('"', '""')}"`;
+const dateSortKey = date => {
+  const match = String(date).match(/^(\d{4})-(\d{2})(?:-(\d{2}))?(?:~(\d{2}))?$/);
+  if (!match) return 0;
+  const [, year, month, day, endMonth] = match;
+  const normalizedMonth = Number(endMonth || month);
+  const normalizedDay = Number(day || 0);
+  return Number(year) * 10000 + normalizedMonth * 100 + normalizedDay;
+};
+const sortByLatestDate = events => [...events].sort((a, b) => dateSortKey(b.date) - dateSortKey(a.date));
 
 const makeFilterOptions = (label, values) => [label, ...unique(values)]
   .map(value => `<option value="${escapeHtml(value)}">${escapeHtml(value)}</option>`)
   .join('');
 
-const latestEvents = [...allEvents].sort((a, b) => b.date.localeCompare(a.date));
+const latestEvents = sortByLatestDate(allEvents);
 
 const metricCards = productData.metrics.map((item, index) => `
   <article class="metric-tile surface reveal" style="--delay:${index * 60}ms">
@@ -71,7 +80,7 @@ const methodCards = productData.methodology.map((item, index) => `
   </article>
 `).join('');
 
-const getFilteredEvents = () => allEvents.filter(item => {
+const getFilteredEvents = () => sortByLatestDate(allEvents.filter(item => {
   const haystack = [
     item.company,
     item.ticker,
@@ -93,7 +102,7 @@ const getFilteredEvents = () => allEvents.filter(item => {
     && (state.strength === '全部信号' || item.strength === state.strength)
     && (state.direction === '全部方向' || item.direction === state.direction)
     && haystack.includes(state.query.trim().toLowerCase());
-});
+}));
 
 const summarizeEvents = events => {
   if (!events.length) return '当前筛选没有命中事件样本。';
@@ -108,7 +117,7 @@ const summarizeEvents = events => {
     : topSectors.length === sectorEntries.length
       ? '样本分布较分散'
       : `集中板块为 ${topSectors.slice(0, 2).join('、')}`;
-  const latestDate = [...events].sort((a, b) => b.date.localeCompare(a.date))[0].date;
+  const latestDate = sortByLatestDate(events)[0].date;
 
   return `命中 ${events.length} 条，覆盖 ${regionCount} 个地区；${sectorText}，最新事件日期 ${latestDate}。`;
 };
