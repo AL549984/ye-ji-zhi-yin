@@ -407,7 +407,7 @@ const setupReveal = () => {
         observer.unobserve(entry.target);
       }
     });
-  }, { threshold: 0.18 });
+  }, { threshold: 0.04, rootMargin: '0px 0px -8% 0px' });
   items.forEach(item => observer.observe(item));
 };
 

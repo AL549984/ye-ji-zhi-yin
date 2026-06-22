@@ -186,10 +186,10 @@ option { color: #10140f; }
 button { min-height: 38px; border: 1px solid var(--rule); background: rgba(255,255,255,.045); color: var(--text); padding: 0 12px; font-weight: 700; cursor: pointer; transition: border-color .2s ease, background .2s ease, color .2s ease; }
 button:hover { border-color: var(--gold-bright); }
 button[aria-pressed="true"] { background: rgba(217, 183, 98, .18); color: var(--gold-bright); border-color: var(--gold); }
-.table-shell { overflow-x: auto; border: 1px solid rgba(255,255,255,.06); }
+.table-shell { max-height: min(68vh, 760px); overflow: auto; border: 1px solid rgba(255,255,255,.06); }
 table { width: 100%; min-width: 1380px; border-collapse: collapse; background: rgba(255,255,255,.02); }
 th, td { padding: 15px; border-bottom: 1px solid rgba(255,255,255,.07); text-align: left; vertical-align: top; }
-th { color: var(--muted); background: rgba(255,255,255,.035); font: 600 12px/1.2 var(--mono); }
+th { position: sticky; top: 0; z-index: 1; color: var(--muted); background: #242722; font: 600 12px/1.2 var(--mono); }
 td { color: #ebe8dc; font-size: 14px; }
 td strong { display: block; margin-bottom: 4px; }
 td span, td small { color: var(--muted); display: block; }
