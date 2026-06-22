@@ -115,21 +115,34 @@ const summarizeEvents = events => {
 
 const renderRows = events => {
   if (!events.length) {
-    return '<tr><td class="empty-state" colspan="10">没有匹配的事件样本，换一个筛选条件或关键词试试。</td></tr>';
+    return '<tr><td class="empty-state" colspan="6">没有匹配的事件样本，换一个筛选条件或关键词试试。</td></tr>';
   }
 
   return events.map(item => `
     <tr>
-      <td><strong>${escapeHtml(item.company)}</strong><span>${escapeHtml(item.eventType)}</span></td>
-      <td>${escapeHtml(item.ticker)}</td>
-      <td>${escapeHtml(item.region)}</td>
-      <td>${escapeHtml(item.sector)}</td>
-      <td><mark>${escapeHtml(item.strength)}</mark></td>
-      <td>${escapeHtml(item.direction)}</td>
-      <td>${escapeHtml(item.date)}</td>
-      <td><p>${escapeHtml(item.signal)}</p><small>${escapeHtml(item.excerpt)}</small></td>
-      <td><strong>${escapeHtml(item.impactChain)}</strong><span>${escapeHtml(item.interpretation)}</span></td>
-      <td><a href="${escapeHtml(item.sourceUrl)}" target="_blank" rel="noreferrer">${escapeHtml(item.source)}</a><a class="muted-link" href="${escapeHtml(item.recordUrl)}" target="_blank" rel="noreferrer">Base</a></td>
+      <td class="company-cell">
+        <strong>${escapeHtml(item.company)}</strong>
+        <span>${escapeHtml(item.eventType)}</span>
+        <em>${escapeHtml(item.ticker)}</em>
+      </td>
+      <td class="market-cell">
+        <strong>${escapeHtml(item.region)}</strong>
+        <span>${escapeHtml(item.sector)}</span>
+      </td>
+      <td class="signal-cell">
+        <mark>${escapeHtml(item.strength)}</mark>
+        <span>${escapeHtml(item.direction)}</span>
+      </td>
+      <td class="date-cell">${escapeHtml(item.date)}</td>
+      <td class="evidence-cell">
+        <p>${escapeHtml(item.signal)}</p>
+        <small>${escapeHtml(item.excerpt)}</small>
+        <span>${escapeHtml(item.interpretation)}</span>
+      </td>
+      <td class="source-actions">
+        <a href="${escapeHtml(item.sourceUrl)}" target="_blank" rel="noreferrer">来源</a>
+        <a href="${escapeHtml(item.recordUrl)}" target="_blank" rel="noreferrer">Base</a>
+      </td>
     </tr>
   `).join('');
 };
@@ -309,7 +322,7 @@ app.innerHTML = `
       <div class="workbench-head reveal">
         <div>
           <p class="eyebrow">Evidence Workbench</p>
-          <h2>事件样本工作台</h2>
+          <h2>事件情报工作台</h2>
           <p>筛选、复核、导出完整事件库。每条记录都保留来源和 Base 复核入口。</p>
         </div>
         <strong data-result-count>0/0</strong>
@@ -336,18 +349,14 @@ app.innerHTML = `
           <div class="table-shell" data-table-view>
             <table>
               <thead>
-                <tr>
-                  <th>公司 / 类型</th>
-                  <th>代码 / 上市地</th>
-                  <th>地区</th>
-                  <th>板块</th>
-                  <th>信号</th>
-                  <th>方向</th>
-                  <th>日期</th>
-                  <th>披露信号 / 摘录</th>
-                  <th>产业链解读</th>
-                  <th>来源</th>
-                </tr>
+	                <tr>
+	                  <th>公司</th>
+	                  <th>市场/板块</th>
+	                  <th>信号</th>
+	                  <th>日期</th>
+	                  <th>披露证据</th>
+	                  <th>复核</th>
+	                </tr>
               </thead>
               <tbody data-event-rows></tbody>
             </table>
