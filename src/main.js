@@ -2,7 +2,7 @@ import './styles.css';
 import { productData } from './data/product-data.js';
 
 const app = document.querySelector('#app');
-const allEvents = productData.sampleEvents;
+const allEvents = productData.events;
 
 const state = {
   region: '全部地区',
@@ -310,7 +310,7 @@ app.innerHTML = `
         <div>
           <p class="eyebrow">Evidence Workbench</p>
           <h2>事件样本工作台</h2>
-          <p>筛选、复核、导出当前样本。完整 36 条事件请进入 Base。</p>
+          <p>筛选、复核、导出完整事件库。每条记录都保留来源和 Base 复核入口。</p>
         </div>
         <strong data-result-count>0/0</strong>
       </div>
