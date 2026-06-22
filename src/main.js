@@ -186,6 +186,7 @@ const renderCards = events => {
 
 const renderWorkbench = () => {
   const filteredEvents = getFilteredEvents();
+  const activeView = window.matchMedia('(max-width: 640px)').matches ? 'card' : state.view;
   const count = document.querySelector('[data-result-count]');
   const summary = document.querySelector('[data-filter-summary]');
   const tbody = document.querySelector('[data-event-rows]');
@@ -197,11 +198,11 @@ const renderWorkbench = () => {
   summary.textContent = summarizeEvents(filteredEvents);
   tbody.innerHTML = renderRows(filteredEvents);
   cards.innerHTML = renderCards(filteredEvents);
-  tableShell.hidden = state.view !== 'table';
-  cardShell.hidden = state.view !== 'card';
+  tableShell.hidden = activeView !== 'table';
+  cardShell.hidden = activeView !== 'card';
 
   document.querySelectorAll('[data-view]').forEach(button => {
-    button.setAttribute('aria-pressed', String(button.dataset.view === state.view));
+    button.setAttribute('aria-pressed', String(button.dataset.view === activeView));
   });
 };
 
@@ -409,6 +410,7 @@ document.querySelectorAll('[data-view]').forEach(button => {
     renderWorkbench();
   });
 });
+window.matchMedia('(max-width: 640px)').addEventListener('change', renderWorkbench);
 
 document.querySelector('[data-export]').addEventListener('click', exportCsv);
 

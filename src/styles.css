@@ -236,6 +236,7 @@ mark { display: inline-flex; max-width: 100%; background: var(--patina-soft); bo
 
 .reveal { opacity: 0; transform: translateY(18px); transition: opacity .7s ease var(--delay, 0ms), transform .7s ease var(--delay, 0ms); }
 .reveal.is-visible { opacity: 1; transform: translateY(0); }
+.workbench-shell.reveal { opacity: 1; transform: none; }
 
 @media (max-width: 980px) {
   .nav-links { display: none; }
@@ -256,9 +257,29 @@ mark { display: inline-flex; max-width: 100%; background: var(--patina-soft); bo
   .hero-inner { gap: 26px; padding-top: 54px; }
   .hero-console li { grid-template-columns: 1fr; }
   .metrics, .insight-grid, .method-grid, .quality-grid, .filter-rail { grid-template-columns: 1fr; }
+  .workbench.section-shell { width: min(100vw - 28px, 1180px); }
   .workbench-head { display: block; }
   .workbench-head strong { display: block; margin-top: 12px; }
+  .workbench-shell { display: block; }
+  .filter-rail { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; padding: 14px; }
+  .filter-rail label:last-child { grid-column: 1 / -1; }
+  select, input { min-height: 44px; }
+  .data-panel { padding: 14px; }
+  .data-toolbar { gap: 14px; }
+  .data-toolbar p { font-size: 15px; line-height: 1.65; }
+  .data-toolbar div { width: 100%; display: grid; grid-template-columns: 1fr 1fr; }
+  button[data-view="table"] { display: none; }
+  button[data-export] { grid-column: auto; }
+  .table-shell { display: none; }
+  .event-grid > div { max-height: none; display: grid; gap: 14px; }
+  .event-card, .empty-card { padding: 18px; border: 1px solid rgba(255,255,255,.07); background-color: rgba(255,255,255,.04); box-shadow: none; }
+  .event-head { display: grid; gap: 12px; }
+  .event-head strong { font-size: 19px; }
+  .event-head mark { justify-self: start; }
+  .event-card > p { font-size: 15px; line-height: 1.55; }
   .event-card dl { grid-template-columns: 1fr; }
+  .event-card footer { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .event-card footer a { display: inline-flex; min-height: 38px; align-items: center; justify-content: center; border: 1px solid var(--rule); background: rgba(217, 183, 98, .07); }
 }
 
 @media (prefers-reduced-motion: reduce) {
