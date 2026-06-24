@@ -119,7 +119,48 @@ const summarizeEvents = events => {
       : `集中板块为 ${topSectors.slice(0, 2).join('、')}`;
   const latestDate = sortByLatestDate(events)[0].date;
 
-  return `命中 ${events.length} 条，覆盖 ${regionCount} 个地区；${sectorText}，最新事件日期 ${latestDate}。`;
+  return `命中 ${events.length} 条，覆盖 ${regionCount} 个地区；${sectorText}，最新事件日期/区间 ${latestDate}。`;
+};
+
+const getTopEntry = (events, key) => {
+  if (!events.length) return '无';
+  const entries = Object.entries(events.reduce((acc, item) => {
+    acc[item[key]] = (acc[item[key]] || 0) + 1;
+    return acc;
+  }, {})).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], 'zh-CN'));
+  return `${entries[0][0]} · ${entries[0][1]} 条`;
+};
+
+const renderStatusTiles = events => {
+  const latest = events.length ? sortByLatestDate(events)[0] : null;
+  const positiveCount = events.filter(item => item.direction.includes('正向')).length;
+  const officialCount = events.filter(item => item.source.includes('官方') || item.source.toLowerCase().includes('official')).length;
+
+  return [
+    { label: '最近事件', value: latest ? latest.date : '无', hint: latest ? latest.company : '等待筛选命中' },
+    { label: '主要板块', value: getTopEntry(events, 'sector'), hint: '按当前筛选结果统计' },
+    { label: '正向信号', value: `${positiveCount}/${events.length}`, hint: '含“正向 / 中性偏正”' },
+    { label: '官方来源', value: `${officialCount}/${events.length}`, hint: '官方入口或官方披露文本' }
+  ].map(item => `
+    <article>
+      <span>${escapeHtml(item.label)}</span>
+      <strong>${escapeHtml(item.value)}</strong>
+      <em>${escapeHtml(item.hint)}</em>
+    </article>
+  `).join('');
+};
+
+const sourceClass = source => {
+  if (source.includes('待') || source.includes('媒体') || source.includes('第三方')) return 'source-watch';
+  if (source.includes('官方') || source.toLowerCase().includes('official')) return 'source-official';
+  return 'source-neutral';
+};
+
+const sourceShortLabel = source => {
+  if (source.includes('待') || source.includes('媒体') || source.includes('第三方')) return '媒体线索';
+  if (source.includes('官方') || source.toLowerCase().includes('official')) return '官方来源';
+  if (source.includes('交易所') || source.includes('Exchange')) return '交易所';
+  return '来源资料';
 };
 
 const renderRows = events => {
@@ -147,10 +188,14 @@ const renderRows = events => {
         <p>${escapeHtml(item.signal)}</p>
         <small>${escapeHtml(item.excerpt)}</small>
         <span>${escapeHtml(item.interpretation)}</span>
+        <em>${escapeHtml(item.impactChain)}</em>
       </td>
       <td class="source-actions">
-        <a href="${escapeHtml(item.sourceUrl)}" target="_blank" rel="noreferrer">来源</a>
-        <a href="${escapeHtml(item.recordUrl)}" target="_blank" rel="noreferrer">Base</a>
+        <div class="source-stack">
+          <span class="source-badge ${sourceClass(item.source)}" title="${escapeHtml(item.source)}">${escapeHtml(sourceShortLabel(item.source))}</span>
+          <a href="${escapeHtml(item.sourceUrl)}" target="_blank" rel="noreferrer" aria-label="打开 ${escapeHtml(item.company)} 来源链接">来源复核</a>
+          <a href="${escapeHtml(item.recordUrl)}" target="_blank" rel="noreferrer" aria-label="打开 ${escapeHtml(item.company)} Base 记录">Base记录</a>
+        </div>
       </td>
     </tr>
   `).join('');
@@ -162,8 +207,15 @@ const renderCards = events => {
   return events.map(item => `
     <article class="event-card surface">
       <div class="event-head">
-        <div><strong>${escapeHtml(item.company)}</strong><span>${escapeHtml(item.ticker)}</span></div>
-        <mark>${escapeHtml(item.strength)}</mark>
+        <div>
+          <strong>${escapeHtml(item.company)}</strong>
+          <span>${escapeHtml(item.ticker)}</span>
+          <em>${escapeHtml(item.eventType)}</em>
+        </div>
+        <div>
+          <mark>${escapeHtml(item.strength)}</mark>
+          <small>${escapeHtml(item.date)}</small>
+        </div>
       </div>
       <p>${escapeHtml(item.signal)}</p>
       <dl>
@@ -173,12 +225,17 @@ const renderCards = events => {
         <div><dt>日期</dt><dd>${escapeHtml(item.date)}</dd></div>
       </dl>
       <section>
+        <span>披露摘录</span>
+        <p>${escapeHtml(item.excerpt)}</p>
+      </section>
+      <section>
         <span>产业链解读</span>
         <p>${escapeHtml(item.interpretation)}</p>
       </section>
       <footer>
-        <a href="${escapeHtml(item.sourceUrl)}" target="_blank" rel="noreferrer">${escapeHtml(item.source)}</a>
-        <a href="${escapeHtml(item.recordUrl)}" target="_blank" rel="noreferrer">Base 记录</a>
+        <span class="source-badge ${sourceClass(item.source)}">${escapeHtml(item.source)}</span>
+        <a href="${escapeHtml(item.sourceUrl)}" target="_blank" rel="noreferrer">来源复核</a>
+        <a href="${escapeHtml(item.recordUrl)}" target="_blank" rel="noreferrer">Base记录</a>
       </footer>
     </article>
   `).join('');
@@ -189,6 +246,7 @@ const renderWorkbench = () => {
   const activeView = window.matchMedia('(max-width: 640px)').matches ? 'card' : state.view;
   const count = document.querySelector('[data-result-count]');
   const summary = document.querySelector('[data-filter-summary]');
+  const statusGrid = document.querySelector('[data-status-grid]');
   const tbody = document.querySelector('[data-event-rows]');
   const cards = document.querySelector('[data-card-rows]');
   const tableShell = document.querySelector('[data-table-view]');
@@ -196,6 +254,7 @@ const renderWorkbench = () => {
 
   count.textContent = `${filteredEvents.length}/${allEvents.length}`;
   summary.textContent = summarizeEvents(filteredEvents);
+  statusGrid.innerHTML = renderStatusTiles(filteredEvents);
   tbody.innerHTML = renderRows(filteredEvents);
   cards.innerHTML = renderCards(filteredEvents);
   tableShell.hidden = activeView !== 'table';
@@ -208,7 +267,7 @@ const renderWorkbench = () => {
 
 const exportCsv = () => {
   const rows = getFilteredEvents();
-  const headers = ['公司', '代码/上市地', '地区', '板块', '事件类型', '信号强度', '方向', '日期', '信号', '摘录', '产业链', '解读', '来源', '官方链接'];
+  const headers = ['公司', '代码/上市地', '地区', '板块', '事件类型', '信号强度', '方向', '日期', '信号', '摘录', '产业链', '解读', '来源', '官方链接', 'Base记录'];
   const body = rows.map(item => [
     item.company,
     item.ticker,
@@ -223,7 +282,8 @@ const exportCsv = () => {
     item.impactChain,
     item.interpretation,
     item.source,
-    item.sourceUrl
+    item.sourceUrl,
+    item.recordUrl
   ].map(csvEscape).join(','));
   const csv = [headers.map(csvEscape).join(','), ...body].join('\n');
   const blob = new Blob([`\uFEFF${csv}`], { type: 'text/csv;charset=utf-8' });
@@ -356,6 +416,7 @@ app.innerHTML = `
               <button type="button" data-export>导出 CSV</button>
             </div>
           </div>
+          <div class="data-status-grid" data-status-grid></div>
           <div class="table-shell" data-table-view>
             <table>
               <thead>
@@ -413,6 +474,13 @@ document.querySelectorAll('[data-view]').forEach(button => {
 window.matchMedia('(max-width: 640px)').addEventListener('change', renderWorkbench);
 
 document.querySelector('[data-export]').addEventListener('click', exportCsv);
+
+const scrollToHashTarget = () => {
+  if (!location.hash) return;
+  const target = document.querySelector(location.hash);
+  if (!target) return;
+  requestAnimationFrame(() => target.scrollIntoView({ block: 'start' }));
+};
 
 const setupReveal = () => {
   const items = document.querySelectorAll('.reveal');
@@ -536,6 +604,8 @@ const setupSignalCanvas = () => {
 };
 
 renderWorkbench();
+scrollToHashTarget();
+window.addEventListener('hashchange', scrollToHashTarget);
 setupReveal();
 setupSpotlight();
 setupCounters();
